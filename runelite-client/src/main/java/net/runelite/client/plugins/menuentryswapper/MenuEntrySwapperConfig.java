@@ -281,4 +281,14 @@ public interface MenuEntrySwapperConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+			keyName = "swapBlastFurnace",
+			name = "Blast Furnace",
+			description = "Disables the blast furnace conveyor if goldsmithing gauntlets are not on and disables ice gloves if the gold ore has not been smelted yet."
+	)
+	default boolean swapBlastFurnace()
+	{
+		return true;
+	}
 }

@@ -31,12 +31,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.Setter;
-import net.runelite.api.Client;
-import net.runelite.api.GameState;
-import net.runelite.api.ItemComposition;
-import net.runelite.api.MenuAction;
-import net.runelite.api.MenuEntry;
-import net.runelite.api.NPC;
+import net.runelite.api.*;
 import net.runelite.api.events.ConfigChanged;
 import net.runelite.api.events.FocusChanged;
 import net.runelite.api.events.MenuEntryAdded;
@@ -570,6 +565,30 @@ public class MenuEntrySwapperPlugin extends Plugin
 		{
 			swap("use", option, target, true);
 		}
+		else if (config.swapBlastFurnace() && option.equals("put-ore-on"))
+		{
+			ItemContainer equipmentContainer = client.getItemContainer(InventoryID.EQUIPMENT);
+			if (equipmentContainer != null)
+			{
+				Item[] items = equipmentContainer.getItems();
+				int idx = EquipmentInventorySlot.GLOVES.getSlotIdx();
+				if (items != null || idx < items.length)
+				{
+					Item glove = items[idx];
+					if (glove != null && glove.getId() != ItemID.GOLDSMITH_GAUNTLETS)
+					{
+						remove(option, target, true);
+					}
+				}
+			}
+		}
+		else if (config.swapBlastFurnace() && option.equals("wear") && target.equals("ice gloves") &&
+				(client.getVar(Varbits.BLAST_FURNACE_GOLD_ORE) != 0 ||
+						(client.getVar(Varbits.BLAST_FURNACE_GOLD_ORE) == 0 &&
+								client.getVar(Varbits.BLAST_FURNACE_GOLD_BAR) == 0)))
+		{
+			remove(option, target, true);
+		}
 	}
 
 	@Subscribe
@@ -626,6 +645,23 @@ public class MenuEntrySwapperPlugin extends Plugin
 
 		int idxA = searchIndex(entries, optionA, target, strict);
 		int idxB = searchIndex(entries, optionB, target, strict);
+
+		if (idxA >= 0 && idxB >= 0)
+		{
+			MenuEntry entry = entries[idxA];
+			entries[idxA] = entries[idxB];
+			entries[idxB] = entry;
+
+			client.setMenuEntries(entries);
+		}
+	}
+
+	private void remove(String option, String target, boolean strict)
+	{
+		MenuEntry[] entries = client.getMenuEntries();
+
+		int idxA = searchIndex(entries, option, target, strict);
+		int idxB = searchIndex(entries, "cancel", "", strict);
 
 		if (idxA >= 0 && idxB >= 0)
 		{
